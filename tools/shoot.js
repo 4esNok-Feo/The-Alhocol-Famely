@@ -28,6 +28,7 @@ async function loadCanvasModule() {
   const candidates = [
     '@napi-rs/canvas',
     process.env.KATME_CANVAS,
+    '/home/user/shots-env/node_modules/@napi-rs/canvas/index.js',
     '/home/user/.shots-env/node_modules/@napi-rs/canvas/index.js',
   ].filter(Boolean);
   for (const c of candidates) {
@@ -158,7 +159,7 @@ shot('brief', 'брифинг перед сменой');
 game.startShift(shifts[2]);       // вечерняя смена: плотный поток
 game.autoBot = new Bot('strong', 2024);
 let captured = { queue: false, carrying: false, dialog: false, register: false };
-  // (dialogDone — служебный флаг: после диалога кадр кассы снимается спокойно)
+  // (после диалога кадр кассы снимается спокойно — без наложения подсказок)
 for (let i = 0; i < 60 * 180 * 1.1; i++) {
   simulate(1 / 60);
   const snap = game.run?.snapshot();
@@ -169,10 +170,26 @@ for (let i = 0; i < 60 * 180 * 1.1; i++) {
     shot('shift-refill', 'склад и выкладка ящиков');
     captured.carrying = true;
   }
-  if (!captured.queue && snap.queue >= 2) {
+  // Очередь: кадр нужен в разгар смены, пока полки ещё полные, а на кассе
+  // живая работа (в концовке смены очередь уже разобрана и снимок пустой).
+  const midShift = game.run.time > 35 && game.run.time < game.run.duration - 25;
+  if (!captured.queue && midShift && snap.queue >= 1 && snap.atRegister) {
+    game.render();
+    shot('shift-queue', 'касса: покупатель платит, на полке ещё есть товар');
+    captured.queue = true;
+  }
+  // Страховка: если подходящего момента не случилось — снимаем то, что есть.
+  if (!captured.queue && game.run.time > game.run.duration * 0.7 && snap.queue >= 1) {
     game.render();
     shot('shift-queue', 'очередь на кассе');
     captured.queue = true;
+  }
+  // Скандалист приходит случайно, а кадр нужен всегда: если к середине смены
+  // его не было, подсаживаем в очередь вручную — дальше его обслужит бот.
+  if (!captured.dialog && !captured.dialogSeeded && game.run.time > 55
+      && game.run.reserved < 3) {
+    game.run.spawnCustomer('scandal');
+    captured.dialogSeeded = true;
   }
   if (!captured.dialog && snap.dialogCustomer) {
     game.render();
@@ -225,5 +242,12 @@ game.setState('equipment');
 frame(1 / 60, 10);
 shot('equipment-progress', 'открытые комплекты формы и улучшения');
 
+const expected = ['menu', 'career', 'goals', 'equipment', 'brief', 'shift-queue',
+  'shift-dialog', 'shift-refill', 'shift-register', 'results', 'pause',
+  'career-progress', 'equipment-progress'];
+const missing = expected.filter((name) => !shots.some((s) => s.name === name));
+if (missing.length) {
+  console.warn(`\nВнимание: не сняты кадры — ${missing.join(', ')}`);
+}
 console.log(`\nГотово: ${shots.length} снимков в docs/screenshots/`);
 console.log(`Всего байт: ${shots.reduce((a, s) => a + s.bytes, 0)}`);

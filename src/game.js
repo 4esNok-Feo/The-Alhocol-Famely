@@ -452,6 +452,10 @@ export class Game {
         break;
       case 'career':
         if (inp.pressed('pause')) this.setState('menu');
+        if (inp.pressed('confirm')) {
+          const next = this.nextShift();
+          if (next) this.openBrief(next);
+        }
         break;
       case 'brief':
         if (inp.pressed('confirm')) this.startShift(this.shift);
@@ -604,50 +608,79 @@ export class Game {
     }
   }
 
+  /**
+   * Выполняет действие кнопки по её идентификатору.
+   *
+   * Возвращает true, если такой идентификатор вообще известен игре, и false,
+   * если кнопка «мертвая». Возврат нужен не для красоты: тест
+   * tests/screens.test.js рисует все экраны, собирает идентификаторы кнопок и
+   * требует, чтобы каждый был обработан. Так заглушка-пустышка вроде прежнего
+   * `if (id.startsWith('start:')) return;` (из-за неё кнопка «Начать смену»
+   * ничего не делала) не пройдёт незамеченной.
+   */
   activate(id) {
-    if (!id) return;
+    if (!id) return false;
     this.audio.play('ui');
+
     if (id.startsWith('goto:')) {
       const target = id.slice(5);
       this.setState(target === 'help' ? 'help' : target);
-      return;
+      return true;
     }
+    // Из карьеры смена открывается брифингом, а сам запуск — кнопкой на брифинге.
+    if (id.startsWith('start:')) {
+      const shift = shiftList().find((s) => s.id === id.slice(6));
+      if (shift) this.openBrief(shift);
+      return true;
+    }
+    // Разрешение смены, которое «работает» только когда брифинг открыт.
     if (id.startsWith('play:')) {
       const shift = shiftList().find((s) => s.id === id.slice(5));
       if (shift) this.startShift(shift);
-      return;
-    }
-    if (id.startsWith('start:') || id.startsWith('brief:')) { return; }
-    switch (id) {
-      case 'pause': this.setState('pause', { snapshot: this.run?.snapshot() }); break;
-      case 'mute': this.toggleSound(); break;
-      case 'resume': this.setState('shift', { snapshot: null }); break;
-      case 'restart': this.startShift(this.shift); break;
-      case 'reload': window.location.reload(); break;
-      case 'scan':
-        // Пока идёт «пик» сканера, повторное нажатие — не ошибка, а нетерпение.
-        if (!this.run?.pressScan() && !this.run?.busy) this.audio.play('error');
-        break;
-      case 'checkId': this.run?.pressCheckId(); break;
-      case 'refuse': this.run?.pressRefuse(); break;
-      case 'finish': this.run?.pressEnter(); break;
-      case 'answer1': this.run?.answerDialog(0); break;
-      case 'answer2': this.run?.answerDialog(1); break;
-      case 'answer3': this.run?.answerDialog(2); break;
-      case 'toggleSound': this.toggleSound(); break;
-      case 'toggleQuality': this.toggleQuality(); break;
-      default: break;
+      return true;
     }
     if (id.startsWith('outfit:')) {
       const ok = setOutfit(this.profile, id.slice(7));
       if (ok) this.save('outfit');
-      return;
+      return true;
     }
     if (id.startsWith('upgrade:')) {
       const res = buyUpgrade(this.profile, id.slice(8));
       if (res.ok) this.save('upgrade');
-      return;
+      return true;
     }
+
+    switch (id) {
+      case 'pause': this.setState('pause', { snapshot: this.run?.snapshot() }); return true;
+      case 'mute': this.toggleSound(); return true;
+      case 'resume': this.setState('shift', { snapshot: null }); return true;
+      case 'restart': this.startShift(this.shift); return true;
+      case 'reload': window.location.reload(); return true;
+      case 'scan':
+        // Пока идёт «пик» сканера, повторное нажатие — не ошибка, а нетерпение.
+        if (!this.run?.pressScan() && !this.run?.busy) this.audio.play('error');
+        return true;
+      case 'checkId': this.run?.pressCheckId(); return true;
+      case 'refuse': this.run?.pressRefuse(); return true;
+      case 'finish': this.run?.pressEnter(); return true;
+      case 'answer1': this.run?.answerDialog(0); return true;
+      case 'answer2': this.run?.answerDialog(1); return true;
+      case 'answer3': this.run?.answerDialog(2); return true;
+      case 'toggleSound': this.toggleSound(); return true;
+      case 'toggleQuality': this.toggleQuality(); return true;
+      default: return false;
+    }
+  }
+
+  /**
+   * Смена, которую логично предложить следующей: первая открытая без трёх
+   * звёзд, иначе — первая открытая. Нужна для клавиши Enter в карьере.
+   */
+  nextShift() {
+    const shifts = shiftList();
+    const open = shifts.filter((s, i) => shiftUnlocked(this.profile, i));
+    if (!open.length) return null;
+    return open.find((s) => (this.profile.shifts[s.id]?.stars ?? 0) < 3) ?? open[open.length - 1];
   }
 
   // ── Отрисовка ───────────────────────────────────────────────────────

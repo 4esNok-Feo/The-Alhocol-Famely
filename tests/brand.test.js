@@ -60,6 +60,7 @@ test('Катьме нарисована как девушка: хвост, фа�
   // так тест поймает и «потерянный» хвост, и слетевший на другой цвет фартук.
   let canvasMod = null;
   for (const candidate of ['@napi-rs/canvas', process.env.KATME_CANVAS,
+    '/home/user/shots-env/node_modules/@napi-rs/canvas/index.js',
     '/home/user/.shots-env/node_modules/@napi-rs/canvas/index.js']) {
     if (!candidate) continue;
     try {

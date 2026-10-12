@@ -28,6 +28,7 @@ async function loadCanvas() {
   const candidates = [
     '@napi-rs/canvas',
     process.env.KATME_CANVAS,
+    '/home/user/shots-env/node_modules/@napi-rs/canvas/index.js',
     '/home/user/.shots-env/node_modules/@napi-rs/canvas/index.js',
   ].filter(Boolean);
   for (const c of candidates) {
