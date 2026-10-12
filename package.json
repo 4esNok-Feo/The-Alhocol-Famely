@@ -1,0 +1,20 @@
+{
+  "name": "katme-smena",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "«Катьме: Смена» — браузерная аркада о смене продавца в магазине «АЛОЕ&БЕЛОЕ» (HTML5, без сборщика)",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "serve": "python3 -m http.server 8000 --bind 0.0.0.0",
+    "sim": "node tools/simulate.js",
+    "shots": "node tools/shoot.js",
+    "promo": "node tools/make_promo.js",
+    "pack": "python3 tools/package.py",
+    "verify": "node tools/verify_archive.js",
+    "check": "npm test && npm run pack && npm run verify"
+  },
+  "devDependencies": {
+    "@napi-rs/canvas": "^0.1.59"
+  }
+}
