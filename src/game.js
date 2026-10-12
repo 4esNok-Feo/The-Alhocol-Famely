@@ -598,6 +598,10 @@ export class Game {
     if (!click) return;
     this.clickPending = null;
     const { x, y } = click;
+    // Координаты могут быть нечисловыми (например, если canvas ещё не разложен
+    // и rect нулевой): тогда сравнения ниже всегда ложны и кнопка сработала бы
+    // наугад — такую попытку просто игнорируем.
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return;
     // Кнопки рисуются «сверху вниз», поэтому проверяем в обратном порядке:
     // верхняя и самая свежая получает клик первой.
     for (const b of buttons.slice().reverse()) {

@@ -20,13 +20,20 @@ const STEP = 1 / 60;
 
 /** Канва-заглушка: игре достаточно getContext и размеров. */
 function fakeCanvas() {
+  const handlers = new Map();
   return {
     clientWidth: 1280,
     clientHeight: 720,
     getContext: () => ({}),
-    addEventListener: () => {},
-    removeEventListener: () => {},
+    addEventListener: (name, fn) => handlers.set(name, fn),
+    removeEventListener: (name) => handlers.delete(name),
     getBoundingClientRect: () => ({ left: 0, top: 0, width: 1280, height: 720 }),
+    /** Настоящее событие мыши, как его пришлёт браузер. */
+    fire: (name, x, y) => {
+      const fn = handlers.get(name);
+      if (fn) fn({ clientX: x, clientY: y, touches: [{ clientX: x, clientY: y }], preventDefault() {} });
+    },
+    handlers,
   };
 }
 
@@ -41,8 +48,13 @@ function makeGame() {
     currentProfile: null,
     storage: { get: () => null, set: () => {} },
   };
-  const game = new Game(fakeCanvas(), platform);
+  const canvas = fakeCanvas();
+  const game = new Game(canvas, platform);
   game.audio.play = () => {};
+  game.testCanvas = canvas;
+  // Размеры вида задаём явно: в браузере их ставит resize() при старте.
+  game.viewW = 1280;
+  game.viewH = 720;
   return game;
 }
 
@@ -151,7 +163,7 @@ test('клик мимо кнопок и по выключенной кнопке
 
   game.pointerClick = { x: 500, y: 500 };
   game.update(STEP, true);
-  game.handleButtons([button('scan', 80, 80)]);
+  game.handleButtons([button('scan', 80, 80, 60, 20)]);
   assert.equal(scans, 0, 'мимо кнопки — тишина');
 
   game.pointerClick = { x: 100, y: 100 };
@@ -182,4 +194,70 @@ test('кнопка паузы переключает состояние игры
   game.update(STEP, true);
   game.handleButtons([button('pause', 80, 80)]);
   assert.equal(game.state, 'pause', 'игра встала на паузу по клику');
+});
+
+test('настоящее событие мыши доходит до кнопки через bindPointer', () => {
+  // Самый честный тест: игра сама подписывается на canvas (bindPointer),
+  // браузер присылает mousedown/mouseup, а мы проверяем, что действие
+  // случилось. Именно эта цепочка ломалась у игрока.
+  const game = makeGame();
+  const { run } = withCustomer(game);
+  game.bindPointer();
+
+  let scans = 0;
+  const original = run.pressScan.bind(run);
+  run.pressScan = (...args) => { scans++; return original(...args); };
+
+  const button = { id: 'scan', x: 900, y: 600, w: 120, h: 40, enabled: true };
+  game.testCanvas.fire('mousedown', 950, 620);
+  game.testCanvas.fire('mouseup', 950, 620);
+
+  game.update(STEP, true);              // кадр: клик переезжает в clickPending
+  game.handleButtons([button]);         // отрисовка отдаёт кнопки
+  assert.equal(scans, 1, 'клик по координатам кнопки вызвал действие');
+});
+
+test('клик мимо кнопки браузерными событиями ничего не запускает', () => {
+  const game = makeGame();
+  const { run } = withCustomer(game);
+  game.bindPointer();
+
+  let scans = 0;
+  run.pressScan = () => { scans++; return true; };
+
+  game.testCanvas.fire('mousedown', 100, 100);
+  game.testCanvas.fire('mouseup', 100, 100);
+  game.update(STEP, true);
+  game.handleButtons([{ id: 'scan', x: 900, y: 600, w: 120, h: 40, enabled: true }]);
+  assert.equal(scans, 0, 'мимо кнопки — действия нет');
+});
+
+test('клик с нечисловыми координатами не нажимает кнопку наугад', () => {
+  // Если canvas ещё не разложен, координаты получаются NaN. Сравнения
+  // «x < b.x» при NaN всегда ложны, поэтому без защиты срабатывала бы
+  // первая же кнопка в списке.
+  const game = makeGame();
+  const { run } = withCustomer(game);
+
+  let scans = 0;
+  run.pressScan = () => { scans++; return true; };
+
+  game.pointerClick = { x: NaN, y: NaN };
+  game.update(STEP, true);
+  game.handleButtons([button('scan', 80, 80, 60, 20)]);
+  assert.equal(scans, 0, 'NaN-координаты не нажимают кнопку');
+});
+
+test('нажатие без отпускания мышью кнопку не нажимает', () => {
+  const game = makeGame();
+  const { run } = withCustomer(game);
+  game.bindPointer();
+
+  let scans = 0;
+  run.pressScan = () => { scans++; return true; };
+
+  game.testCanvas.fire('mousedown', 950, 620);
+  game.update(STEP, true);
+  game.handleButtons([{ id: 'scan', x: 900, y: 600, w: 120, h: 40, enabled: true }]);
+  assert.equal(scans, 0, 'пока кнопка мыши не отпущена, клика нет');
 });
