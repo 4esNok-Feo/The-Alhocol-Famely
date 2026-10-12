@@ -607,7 +607,15 @@ export class Game {
     for (const b of buttons.slice().reverse()) {
       if (!b.enabled) continue;
       if (x < b.x || x > b.x + b.w || y < b.y || y > b.y + b.h) continue;
-      this.activate(b.id);
+      if (!this.activate(b.id)) {
+        // Кнопка нарисована, но игра не знает, что с ней делать. Молчать нельзя:
+        // именно так терялось «Начать смену». Пишем один раз на идентификатор.
+        this.unknownButtons = this.unknownButtons ?? new Set();
+        if (!this.unknownButtons.has(b.id)) {
+          this.unknownButtons.add(b.id);
+          console.warn(`[кнопки] нет обработчика для «${b.id}» — кнопка ничего не делает`);
+        }
+      }
       return;
     }
   }

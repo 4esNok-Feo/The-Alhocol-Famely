@@ -281,3 +281,61 @@ test('кнопка «Ещё одна смена» на итогах запуск
   game.activate(again.id);
   assert.ok(['shift', 'results'].includes(game.state), `состояние после повтора: ${game.state}`);
 });
+
+test('весь путь игрока кликами мыши: меню → карьера → брифинг → смена', async (t) => {
+  // Самый честный сценарий: игра сама подписывается на canvas, «браузер»
+  // присылает mousedown/mouseup по координатам реальных кнопок, а мы смотрим
+  // на состояние игры. Именно такая цепочка дважды ломалась незаметно.
+  if (!canvasMod) {
+    t.skip('нет @napi-rs/canvas — проверка пути пропущена');
+    return;
+  }
+  const game = makeGame();
+  game.profile = richProfile();
+
+  const handlers = new Map();
+  game.canvas.addEventListener = (name, fn) => handlers.set(name, fn);
+  game.canvas.removeEventListener = (name) => handlers.delete(name);
+  game.bindPointer();
+
+  let lastButtons = [];
+  const original = game.handleButtons.bind(game);
+  game.handleButtons = (buttons) => { lastButtons = buttons ?? []; original(buttons); };
+
+  const frame = () => { game.update(1 / 60); game.render(); };
+  const click = (id) => {
+    const b = lastButtons.find((x) => x.id === id);
+    assert.ok(b, `кнопка «${id}» есть на экране (доступны: ${lastButtons.map((x) => x.id).join(', ')})`);
+    assert.ok(b.enabled !== false, `кнопка «${id}» доступна`);
+    const x = b.x + b.w / 2;
+    const y = b.y + b.h / 2;
+    handlers.get('mousedown')?.({ clientX: x, clientY: y, touches: [], preventDefault() {} });
+    handlers.get('mouseup')?.({ clientX: x, clientY: y, touches: [], preventDefault() {} });
+    frame();   // этот кадр обрабатывает клик и меняет экран
+    frame();   // и ещё один: список кнопок нового экрана (в игре кадры идут подряд)
+  };
+
+  game.setState('menu');   // в игре это делает boot() после загрузки профиля
+  frame();
+  assert.equal(game.state, 'menu');
+  click('goto:career');
+  assert.equal(game.state, 'career', 'меню → карьера');
+
+  const shifts = shiftList();
+  click(`start:${shifts[0].id}`);
+  assert.equal(game.state, 'brief', 'карьера → брифинг');
+  assert.equal(game.shift.id, shifts[0].id, 'брифинг про выбранную смену');
+
+  click(`play:${shifts[0].id}`);
+  assert.equal(game.state, 'shift', 'брифинг → смена');
+  assert.ok(game.run, 'модель смены создана');
+
+  // Прокручиваем полминуты смены: покупатели приходят, мир живёт. Полную
+  // отрисовку зовём редко — она дорогая, а тест проверяет модель и состояние.
+  for (let i = 0; i < 60 * 30 && !game.run.finished; i++) {
+    game.update(1 / 60, true);
+    if (i % 300 === 0) game.render();
+  }
+  assert.ok(game.run.stats.served + game.run.queue.length > 0, 'в смене есть покупатели');
+  assert.ok(game.run.stress < 100, 'смена не сорвана на первых секундах');
+});

@@ -7,7 +7,7 @@
  * «тупым» и предсказуемым.
  */
 
-import { KEYS_HELP, OUTFITS, TEXT, UPGRADES, VENUES } from '../core/config.js';
+import { KEYS_HELP, OUTFITS, TEXT, UPGRADES, VENUES, VERSION } from '../core/config.js';
 import {
   careerGoals, goalProgress, outfitById, rankFor, shiftList, shiftUnlocked,
   totalStars, unlockedOutfits,
@@ -214,6 +214,11 @@ export class Screens {
       cx, h - 40 * s, { size: 12 * s, align: 'center', color: 'rgba(240,235,228,0.75)' });
     text(ctx, 'Мышь нужна только для кнопок — всё игровое делается с клавиатуры.',
       cx, h - 22 * s, { size: 12 * s, align: 'center', color: 'rgba(240,235,228,0.6)' });
+    // Версия сборки. Если после правок номер не изменился — браузер показывает
+    // старый код из кэша: тогда нужна жёсткая перезагрузка (Ctrl+F5).
+    text(ctx, `версия ${VERSION}`, w - 14 * s, 20 * s, {
+      size: 11 * s, align: 'right', color: 'rgba(240,235,228,0.45)',
+    });
   }
 
   // ── Карьера ──────────────────────────────────────────────────────────
@@ -570,6 +575,9 @@ export class Screens {
       size: 12 * s, align: 'center', color: C.dim,
     });
     this.btn(ctx, 'goto:menu', cx - 100 * s, y + ch - 46 * s, 200 * s, 38 * s, 'Понятно');
+    text(ctx, `версия ${VERSION}`, cx, y + ch - 12 * s, {
+      size: 11 * s, align: 'center', color: 'rgba(240,235,228,0.4)',
+    });
   }
 
   drawLoading(ctx, state, w, h, s) {

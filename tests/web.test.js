@@ -144,3 +144,44 @@ test('версия сборки указана в одном виде во вс�
     assert.ok(read(page).includes(version), `${page} знает версию ${version}`);
   }
 });
+
+test('дев-сервер отдаёт игру без кэширования', async () => {
+  // Именно из-за кэша браузера дважды подряд терялась починка кнопки
+  // «Начать смену»: страница работала, а исправление не приезжало.
+  const { spawn } = await import('node:child_process');
+  const net = await import('node:net');
+
+  const port = await new Promise((resolve) => {
+    const srv = net.createServer();
+    srv.listen(0, '127.0.0.1', () => {
+      const p = srv.address().port;
+      srv.close(() => resolve(p));
+    });
+  });
+
+  const child = spawn('python3', ['tools/serve.py', String(port)], { cwd: ROOT, stdio: 'ignore' });
+  try {
+    // Ждём, пока сервер поднимется: до десяти попыток.
+    let res = null;
+    for (let i = 0; i < 20 && !res; i++) {
+      await new Promise((r) => setTimeout(r, 150));
+      try {
+        res = await fetch(`http://127.0.0.1:${port}/src/game.js`);
+      } catch { /* сервер ещё не готов */ }
+    }
+    assert.ok(res, 'сервер ответил');
+    assert.equal(res.status, 200, 'модуль игры отдаётся');
+    const cc = res.headers.get('cache-control') ?? '';
+    assert.ok(/no-store/.test(cc), `Cache-Control запрещает кэш: «${cc}»`);
+    const body = await res.text();
+    assert.ok(body.includes('clickPending'), 'отдаётся свежий код игры');
+  } finally {
+    child.kill('SIGTERM');
+  }
+});
+
+test('npm run serve запускает сервер без кэша', () => {
+  const pkg = JSON.parse(read('package.json'));
+  assert.equal(pkg.scripts.serve, 'python3 tools/serve.py 8000');
+  assert.ok(existsSync(resolve(ROOT, 'tools/serve.py')), 'tools/serve.py на месте');
+});

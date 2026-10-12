@@ -1,12 +1,12 @@
 {
   "name": "katme-smena",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "type": "module",
   "description": "«Катьме: Смена» — браузерная аркада о смене продавщицы в магазине «ВИНОГРАД» (HTML5, без сборщика)",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "serve": "python3 -m http.server 8000 --bind 0.0.0.0",
+    "serve": "python3 tools/serve.py 8000",
     "sim": "node tools/simulate.js",
     "shots": "node tools/shoot.js",
     "promo": "node tools/make_promo.js",
