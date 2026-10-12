@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Катьме: Смена">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f6efe4"/>
+      <stop offset="1" stop-color="#e2d3c2"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  <rect x="0" y="70" width="512" height="46" fill="#c0273a"/>
+  <text x="256" y="104" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif"
+        font-size="34" font-weight="bold" fill="#f6efe4">АЛОЕ&amp;БЕЛОЕ</text>
+  <!-- полка с товаром -->
+  <g>
+    <rect x="70" y="176" width="372" height="26" rx="8" fill="#8d6a4a"/>
+    <rect x="86" y="132" width="30" height="44" rx="6" fill="#c79a3f"/>
+    <rect x="126" y="126" width="30" height="50" rx="6" fill="#2f8296"/>
+    <rect x="166" y="136" width="30" height="40" rx="6" fill="#c46a2e"/>
+    <rect x="206" y="124" width="30" height="52" rx="6" fill="#8e3a44"/>
+    <rect x="246" y="134" width="30" height="42" rx="6" fill="#8fb5d6"/>
+    <rect x="286" y="128" width="30" height="48" rx="6" fill="#c79a3f"/>
+    <rect x="326" y="138" width="30" height="38" rx="6" fill="#2f8296"/>
+  </g>
+  <!-- полка пониже -->
+  <g>
+    <rect x="70" y="292" width="372" height="26" rx="8" fill="#8d6a4a"/>
+    <rect x="96" y="250" width="30" height="42" rx="6" fill="#c46a2e"/>
+    <rect x="136" y="244" width="30" height="48" rx="6" fill="#8e3a44"/>
+    <rect x="176" y="252" width="30" height="40" rx="6" fill="#c79a3f"/>
+  </g>
+  <!-- ценник с «18+» -->
+  <rect x="300" y="226" width="128" height="52" rx="10" fill="#c0273a"/>
+  <text x="364" y="264" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif"
+        font-size="34" font-weight="bold" fill="#fff">18+</text>
+  <!-- Катьме за кассой -->
+  <g>
+    <rect x="150" y="392" width="212" height="24" rx="10" fill="#b98b62"/>
+    <rect x="150" y="416" width="212" height="40" rx="10" fill="#d8b189"/>
+    <!-- фигура -->
+    <rect x="228" y="300" width="56" height="72" rx="20" fill="#b8352f"/>
+    <rect x="240" y="330" width="32" height="30" rx="10" fill="#f5f1ea"/>
+    <circle cx="256" cy="286" r="30" fill="#f6cda6"/>
+    <path d="M226 278 a30 30 0 0 1 60 0 q-30 -18 -60 0" fill="#b8542b"/>
+    <circle cx="246" cy="288" r="4" fill="#33303a"/>
+    <circle cx="266" cy="288" r="4" fill="#33303a"/>
+  </g>
+  <!-- звезда за хорошую смену -->
+  <g transform="translate(430 430)">
+    <path d="M0 -34 L10 -10 L36 -10 L15 6 L23 32 L0 16 L-23 32 L-15 6 L-36 -10 L-10 -10 Z"
+          fill="#f7c948" stroke="#8a6a12" stroke-width="4"/>
+  </g>
+</svg>

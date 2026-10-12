@@ -218,3 +218,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ── Проект: «Катьме: Смена» ─────────────────────────────
+# Служебные каталоги инструментов и артефакты сборки.
+node_modules/
+dist/
+.shots-env/
+*.log
+tmp/
