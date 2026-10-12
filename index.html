@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Катьме: Смена — аркада о смене в магазине у дома</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Браузерная аркада: расставь товар, отбей очередь и доживи до конца смены. Работает без установки, управление с клавиатуры.">
+<meta name="theme-color" content="#c0273a">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<!--
+  Это рабочая страница проекта (и корень архива для Яндекс Игр).
+  Здесь нет сборщика: браузер загружает те же самые ES-модули, что гоняют
+  тесты и симулятор в Node. Никаких сторонних библиотек и CDN.
+-->
+<style>
+  /* Шрифты лежат в архиве рядом с игрой и лицензируются вместе с ней
+     (assets/fonts/LICENSE.txt). Без @font-face браузер рисовал бы кириллицу
+     системным шрифтом, и надписи на канвасе выглядели бы по-разному. */
+  @font-face {
+    font-family: "DejaVu Sans";
+    src: url("assets/fonts/DejaVuSans.ttf") format("truetype");
+    font-weight: 400; font-style: normal; font-display: swap;
+  }
+  @font-face {
+    font-family: "DejaVu Sans";
+    src: url("assets/fonts/DejaVuSans-Bold.ttf") format("truetype");
+    font-weight: 700 900; font-style: normal; font-display: swap;
+  }
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; background: #161320; }
+  body { font-family: "DejaVu Sans", "Segoe UI", Roboto, Arial, sans-serif; overflow: hidden; }
+  #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block;
+          touch-action: none; background: #241f2e; }
+  #boot {
+    position: fixed; inset: 0; display: flex; flex-direction: column; gap: 14px;
+    align-items: center; justify-content: center; text-align: center; padding: 24px;
+    color: #f6f1e9; background: radial-gradient(circle at 50% 30%, #33283c, #14111c 70%);
+    transition: opacity .35s ease;
+  }
+  #boot h1 { font-size: clamp(24px, 5vw, 44px); margin: 0; letter-spacing: .5px; }
+  #boot p { margin: 0; max-width: 44ch; line-height: 1.5; color: #c7beb6; font-size: 15px; }
+  #boot .bar { width: min(320px, 70vw); height: 8px; border-radius: 6px; background: #3a3244; overflow: hidden; }
+  #boot .bar i { display: block; height: 100%; width: 8%; background: linear-gradient(90deg,#c0273a,#f7c948); transition: width .3s; }
+  #boot .hint { font-size: 13px; color: #9d938c; }
+  #boot.hidden { opacity: 0; pointer-events: none; }
+  #crash {
+    position: fixed; inset: 0; display: none; padding: 24px; overflow: auto;
+    background: #2a1116; color: #ffd7d7; font-size: 14px; line-height: 1.5; z-index: 20;
+  }
+  #crash pre { white-space: pre-wrap; word-break: break-word; }
+  noscript { color: #ffd7d7; display: block; padding: 24px; }
+</style>
+</head>
+<body>
+<canvas id="game" aria-label="Игровое поле: магазин у дома"></canvas>
+
+<div id="boot">
+  <h1>Катьме: Смена</h1>
+  <p>Магазин «АЛОЕ&БЕЛОЕ» открывается. Расставьте товар, отбейте очередь и не продайте
+     крепкое младше 18 лет.</p>
+  <div class="bar"><i id="bootBar"></i></div>
+  <p class="hint">Управление: WASD — движение, E — действие, Space — пробить товар,
+     F — паспорт, Enter — завершить чек.</p>
+</div>
+
+<div id="crash"><h2>Игра не запустилась</h2><p id="crashMsg"></p><pre id="crashStack"></pre>
+<p>Проверьте, что браузер поддерживает ES-модули и WebGL, и обновите страницу.</p></div>
+
+<noscript>Для игры нужен браузер с включённым JavaScript.</noscript>
+
+<script type="module">
+  const boot = document.getElementById('boot');
+  const bootBar = document.getElementById('bootBar');
+  const setProgress = (pct, text) => {
+    bootBar.style.width = `${Math.max(8, Math.min(100, pct))}%`;
+    if (text) boot.querySelector('p.hint').textContent = text;
+  };
+
+  // Диагностика доступна и разработчику, и странице поддержки.
+  window.__KATME__ = { version: '1.0.0', ready: false, lastError: null, locale: navigator.language };
+
+  const showCrash = (err) => {
+    document.getElementById('crash').style.display = 'block';
+    document.getElementById('crashMsg').textContent = String(err?.message ?? err);
+    document.getElementById('crashStack').textContent = String(err?.stack ?? '');
+    window.__KATME__.lastError = String(err?.message ?? err);
+  };
+
+  try {
+    setProgress(20, 'Загружаем магазин…');
+    const [{ Game }, { platform }] = await Promise.all([
+      import('./src/game.js'),
+      import('./web/platform.js'),
+    ]);
+    setProgress(60, 'Готовим кассу…');
+    const game = new Game(document.getElementById('game'), platform);
+    window.__KATME__.game = game;
+    window.__KATME__.platform = platform;
+    await game.boot();
+    setProgress(100, 'Открываем двери!');
+    window.__KATME__.debugInfo = () => ({ ...platform.debugInfo(), state: game.state, fps: game.fps });
+    setTimeout(() => boot.classList.add('hidden'), 260);
+  } catch (err) {
+    console.error(err);
+    showCrash(err);
+  }
+</script>
+</body>
+</html>
