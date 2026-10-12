@@ -11,7 +11,7 @@ import {
 } from '../core/config.js';
 import { clamp } from '../core/util.js';
 import {
-  fillRound, fontFamily, icon, paragraph, progressBar, roundRect, shadow,
+  fillRound, fontFamily, grapes, icon, paragraph, progressBar, roundRect, shadow,
   softShadow, strokeRound, text, vgrad,
 } from './draw2d.js';
 
@@ -96,6 +96,14 @@ export class WorldRenderer {
     ctx.restore();
   }
 
+  /** Полупрозрачный оттенок цвета бренда для коврика и мелочей. */
+  tint(hex, alpha = 0.5) {
+    const m = /^#?([0-9a-f]{6})$/i.exec(String(hex ?? ''));
+    if (!m) return `rgba(63,122,69,${alpha})`;
+    const n = parseInt(m[1], 16);
+    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`;
+  }
+
   drawWalls(ctx, palette) {
     const wall = palette.wall ?? '#f2e6d6';
     const shop = WORLD.shop;
@@ -119,8 +127,8 @@ export class WorldRenderer {
       ctx.fillStyle = 'rgba(0,0,0,0.10)';
       ctx.fillRect(r.x, r.y + r.h - 5, r.w, 5);
     }
-    // Красные полосы сети «АЛОЕ&БЕЛОЕ» вдоль северной стены.
-    ctx.fillStyle = 'rgba(192,39,58,0.85)';
+    // Зелено-виноградная полоса сети «ВИНОГРАД» вдоль северной стены.
+    ctx.fillStyle = palette.accent ?? '#3f7a45';
     ctx.fillRect(shop.x - wt, shop.y - 6, shop.w + wt * 2, 8);
     ctx.restore();
 
@@ -133,17 +141,17 @@ export class WorldRenderer {
       size: 10, align: 'center', color: '#eaf6ff', weight: '700',
     });
     // Коврик «добро пожаловать» — правее двери, у самой полосы входа.
-    fillRound(ctx, 84, ent.y + 22, 56, ent.h - 44, 8, 'rgba(150,60,60,0.5)');
+    fillRound(ctx, 84, ent.y + 22, 56, ent.h - 44, 8, this.tint(palette.accent, 0.5));
     text(ctx, 'ДОБРО', 112, ent.y + 52, { size: 12, align: 'center', color: '#ffe9e2', weight: '700' });
     text(ctx, 'ПОЖАЛОВАТЬ', 112, ent.y + 68, { size: 9, align: 'center', color: '#ffe9e2', weight: '700' });
     // Козырёк с полосатым навесом над входом.
     for (let i = 0; i < 6; i++) {
-      ctx.fillStyle = i % 2 ? '#f4f4f4' : '#c0273a';
+      ctx.fillStyle = i % 2 ? '#f4f4f4' : (palette.accent ?? '#3f7a45');
       ctx.fillRect(ent.x + 6, ent.y - 4 + i * 4, 62, 4);
     }
     // Стопка корзин у входа — «берите корзинку».
     for (let i = 0; i < 3; i++) {
-      fillRound(ctx, 70 + i * 3, 620 + i * 13, 48, 17, 5, i % 2 ? '#c0273a' : '#8a9099');
+      fillRound(ctx, 70 + i * 3, 620 + i * 13, 48, 17, 5, i % 2 ? (palette.accent ?? '#3f7a45') : '#8a9099');
     }
     ctx.restore();
   }
@@ -180,8 +188,8 @@ export class WorldRenderer {
     fillRound(ctx, reg.x + reg.w + 14, reg.y + 34, 22, 6, 3, '#ff5b5b');
     ctx.restore();
 
-    // Табличка «КАССА».
-    fillRound(ctx, counter.x + counter.w - 120, counter.y - 26, 110, 28, 8, '#c0273a');
+    // Табличка «КАССА» — в цвете сети.
+    fillRound(ctx, counter.x + counter.w - 120, counter.y - 26, 110, 28, 8, palette.accent ?? '#3f7a45');
     text(ctx, 'КАССА', counter.x + counter.w - 65, counter.y - 6, {
       size: 17, align: 'center', color: '#fff5f2', weight: '800',
     });
@@ -198,9 +206,9 @@ export class WorldRenderer {
     fillRound(ctx, b.x + 36, b.y + 8, 20, 18, 4, '#2f8296');
     fillRound(ctx, b.x + 60, b.y + 2, 16, 24, 4, '#c46a2e');
     // Кромка и ручка.
-    fillRound(ctx, b.x + 6, b.y + 10, b.w - 12, 8, 4, '#c0273a');
+    fillRound(ctx, b.x + 6, b.y + 10, b.w - 12, 8, 4, palette.accent ?? '#3f7a45');
     ctx.save();
-    ctx.strokeStyle = '#c0273a';
+    ctx.strokeStyle = palette.accent ?? '#3f7a45';
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.arc(b.x + b.w / 2, b.y + 8, 18, Math.PI, 0);
@@ -404,45 +412,131 @@ export class WorldRenderer {
     }
   }
 
+  /**
+   * Катьме — продавщица: длинные волосы с хвостом на резинке, чёлка, ресницы,
+   * румянец, платье с фартуком сети и бейдж. Хвост и подол покачиваются при
+   * ходьбе, поэтому по силуэту сразу видно, что это девушка, а не «человек
+   * вообще».
+   */
   drawPlayer(ctx, run, outfit) {
     const p = run.player;
-    const bob = p.moving ? Math.abs(Math.sin(p.walkPhase)) * 2.5 : 0;
+    const t = p.walkPhase;
+    const bob = p.moving ? Math.abs(Math.sin(t)) * 2.5 : 0;
+    const stride = p.moving ? Math.sin(t) * 7 : 0;
+    const swing = p.moving ? Math.sin(t) * 3.2 : 0;   // покачивание хвоста
+    const facing = p.facing ?? 1;
     shadow(ctx, p.x, p.y + 14, 20, 9, 0.28);
-    // Ноги.
-    const stride = p.moving ? Math.sin(p.walkPhase) * 7 : 0;
+
+    // ── Ноги: светлые колготки и кроссовки ────────────────────────────
+    const legY = p.y + 4;
     for (const side of [-1, 1]) {
-      const lx = p.x + side * 8 + stride * side;
-      fillRound(ctx, lx - 5, p.y + 6, 10, 18, 5, '#3b4150');
+      const lx = p.x + side * 7 + stride * side;
+      fillRound(ctx, lx - 4.5, legY, 9, 17, 4.5, '#e8d8cf');
+      fillRound(ctx, lx - 5.5, legY + 14, 11, 7, 3, '#f4f1ea');
+      fillRound(ctx, lx - 5.5, legY + 18, 11, 4, 2, '#c9c4bd');
     }
-    // Корпус: рубашка и фартук сети.
-    const apron = outfit.aprons[p.moving ? Math.floor(p.walkPhase * 2) % outfit.aprons.length : 0];
-    fillRound(ctx, p.x - 16, p.y - 12, 32, 34, 12, '#f5f1ea');
-    fillRound(ctx, p.x - 13, p.y - 8, 26, 26, 9, apron);
-    // Бейдж.
-    fillRound(ctx, p.x + 2, p.y - 4, 10, 12, 2, '#ffffff');
-    fillRound(ctx, p.x + 4, p.y - 2, 6, 3, 1, outfit.badge);
-    // Руки.
+
+    // ── Платье: трапеция с подолом, который качается при шаге ─────────
+    const hem = 15 + (p.moving ? Math.abs(Math.sin(t)) * 1.6 : 0);
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(p.x - 12, p.y - 12);
+    ctx.lineTo(p.x + 12, p.y - 12);
+    ctx.lineTo(p.x + hem, p.y + 12 + bob * 0.2);
+    ctx.lineTo(p.x - hem, p.y + 12 + bob * 0.2);
+    ctx.closePath();
+    ctx.fillStyle = '#4e5a86';            // тёмно-синее платье под фартуком
+    ctx.fill();
+    ctx.restore();
+
+    // ── Фартук сети: нагрудник, пояс и подол ─────────────────────────
+    const apron = outfit.aprons[p.moving ? Math.floor(t * 2) % outfit.aprons.length : 0];
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(p.x - 9, p.y - 13);
+    ctx.lineTo(p.x + 9, p.y - 13);
+    ctx.lineTo(p.x + 13, p.y + 11 + bob * 0.2);
+    ctx.lineTo(p.x - 13, p.y + 11 + bob * 0.2);
+    ctx.closePath();
+    ctx.fillStyle = apron;
+    ctx.fill();
+    ctx.restore();
+    // Пояс фартука и карман.
+    fillRound(ctx, p.x - 13, p.y + 2, 26, 4, 2, 'rgba(0,0,0,0.16)');
+    fillRound(ctx, p.x + 1, p.y + 5, 10, 6, 2, 'rgba(255,255,255,0.22)');
+    // Знак сети на нагруднике.
+    grapes(ctx, p.x - 1, p.y - 5, 2.6);
+    // Бейдж с именем — маленькая карточка на груди.
+    fillRound(ctx, p.x + 6, p.y - 11, 6, 5, 1.2, '#ffffff');
+    fillRound(ctx, p.x + 7, p.y - 10, 3.4, 2, 0.8, outfit.badge);
+
+    // ── Руки ─────────────────────────────────────────────────────────
     for (const side of [-1, 1]) {
-      const hx = p.x + side * 16 + (p.moving ? Math.sin(p.walkPhase + side) * 3 : 0);
-      fillRound(ctx, hx - 4, p.y + 2 - bob * 0.4, 8, 16, 4, '#f2c69f');
+      const hx = p.x + side * 15 + (p.moving ? Math.sin(t + side) * 3 : 0);
+      fillRound(ctx, hx - 3.5, p.y - 2 - bob * 0.4, 7, 15, 3.5, '#f2c69f');
+      // Манжеты фартука.
+      fillRound(ctx, hx - 4, p.y - 4 - bob * 0.4, 8, 4, 2, apron);
     }
-    // Голова: рыжие волосы и хвост.
-    fillRound(ctx, p.x - 11, p.y - 34 - bob, 22, 22, 9, '#f6cda6');
-    fillRound(ctx, p.x - 12, p.y - 36 - bob, 24, 12, 8, '#b8542b');
-    fillRound(ctx, p.x - 16, p.y - 32 - bob, 8, 14, 4, '#a84a25');
-    // Глаза смотрят по направлению движения.
-    const ex = p.facing > 0 ? 3 : -3;
+
+    // ── Голова: лицо, чёлка, длинные волосы и хвост ──────────────────
+    const headY = p.y - 32 - bob;
+    // Хвост на резинке — выносим наружу силуэта, иначе он прячется за головой.
+    ctx.save();
+    ctx.translate(p.x - facing * 12, headY + 1);
+    ctx.rotate(-facing * (0.5 + swing * 0.05));
+    fillRound(ctx, -4.5, 0, 9, 27, 4.5, '#a84a25');
+    fillRound(ctx, -5.5, 23, 11, 9, 4.5, '#b8542b');   // кончик хвоста
+    ctx.restore();
+    // Резинка.
+    fillRound(ctx, p.x - facing * 14 - 3, headY - 1, 8, 6, 3, '#f4d35e');
+    // Волосы сзади — «шапка» длинных волос, спускается до плеч.
+    fillRound(ctx, p.x - 12, headY - 6, 24, 30, 11, '#b8542b');
+    // Лицо.
+    fillRound(ctx, p.x - 10.5, headY, 21, 21, 9, '#f6cda6');
+    // Чёлка: два «крыла» и пробор, волосы закрывают лоб до бровей.
+    fillRound(ctx, p.x - 12, headY - 4, 24, 10, 7, '#b8542b');
+    fillRound(ctx, p.x - 12, headY + 1, 5.5, 12, 3.5, '#a84a25');
+    fillRound(ctx, p.x + 6.5, headY + 1, 5.5, 12, 3.5, '#a84a25');
+    fillRound(ctx, p.x - 2, headY - 5, 4.5, 7, 2.5, '#a84a25');
+
+    // Глаза с ресницами, румянец и улыбка.
+    const ex = facing > 0 ? 2.6 : -2.6;
     for (const side of [-1, 1]) {
-      fillRound(ctx, p.x + ex + side * 4.5 - 1.4, p.y - 26 - bob, 3, 4, 1.5, '#33303a');
+      const eyeX = p.x + ex + side * 4.2;
+      const eyeY = headY + 12.5;
+      fillRound(ctx, eyeX - 1.6, eyeY - 2, 3.2, 4.4, 1.6, '#33303a');
+      fillRound(ctx, eyeX - 1, eyeY - 2.6, 2, 2, 1, 'rgba(255,255,255,0.85)');
+      // Ресницы — короткие штрихи по верхнему краю глаза.
+      ctx.save();
+      ctx.strokeStyle = '#3a2a22';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(eyeX - 2.6, eyeY - 2.4);
+      ctx.lineTo(eyeX - 3.6, eyeY - 4);
+      ctx.moveTo(eyeX + 2.6, eyeY - 2.4);
+      ctx.lineTo(eyeX + 3.6, eyeY - 4);
+      ctx.stroke();
+      ctx.restore();
     }
-    // Фартук-«волна» с логотипом.
-    fillRound(ctx, p.x - 9, p.y + 8, 18, 8, 3, 'rgba(0,0,0,0.18)');
-    text(ctx, 'А&Б', p.x, p.y + 15, { size: 9, align: 'center', color: '#ffe9c9', weight: '800' });
+    // Румянец.
+    ctx.save();
+    ctx.globalAlpha = 0.45;
+    fillRound(ctx, p.x - 9, headY + 15, 5, 3.2, 1.6, '#e88a86');
+    fillRound(ctx, p.x + 4, headY + 15, 5, 3.2, 1.6, '#e88a86');
+    ctx.restore();
+    // Улыбка.
+    ctx.save();
+    ctx.strokeStyle = '#a8554a';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(p.x + ex * 0.4, headY + 15.5, 3.4, 0.15 * Math.PI, 0.85 * Math.PI);
+    ctx.stroke();
+    ctx.restore();
 
     // Ящик в руках — виден над головой, слегка покачивается.
     if (run.carrying) {
       const shelf = this.lastRun.shelfDefs.find((s) => s.id === run.carrying);
-      const by = p.y - 62 - bob + Math.sin(this.t * 5) * 2;
+      const by = p.y - 68 - bob + Math.sin(this.t * 5) * 2;
       fillRound(ctx, p.x - 26, by, 52, 34, 6, '#c68c4e');
       fillRound(ctx, p.x - 22, by + 4, 44, 10, 4, '#e0a866');
       text(ctx, shelf.short.slice(0, 7), p.x, by + 26, {

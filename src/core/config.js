@@ -292,22 +292,22 @@ export const SHIFT = {
 /** Карьера: три адреса по три смены. */
 export const VENUES = [
   {
-    id: 'dom', title: '«АЛОЕ&БЕЛОЕ У ДОМА»', place: 'Кировск, Садовая 12',
+    id: 'dom', title: '«ВИНОГРАД У ДОМА»', place: 'Кировск, Садовая 12',
     flow: 1.0, targetRefusals: 3,
     brief: 'Малый формат: одна касса, четыре полки, вход слева. План дня — 5 200 ₽.',
-    palette: { floor: '#e7d9c4', wall: '#f2e6d6', accent: '#c0273a' },
+    palette: { floor: '#e7d9c4', wall: '#f2e6d6', accent: '#3f7a45' },
   },
   {
-    id: 'street', title: '«АЛОЕ&БЕЛОЕ НА МОСТОВОЙ»', place: 'Вологда, Мостовая 4',
+    id: 'street', title: '«ВИНОГРАД НА МОСТОВОЙ»', place: 'Вологда, Мостовая 4',
     flow: 0.92, targetRefusals: 5,
     brief: 'Средний формат: две кассы, поток с улицы, вечером приходит проверка.',
-    palette: { floor: '#dfd7c8', wall: '#eef0f3', accent: '#b3541e' },
+    palette: { floor: '#dfd7c8', wall: '#eef0f3', accent: '#4b7a3d' },
   },
   {
-    id: 'route', title: '«АЛОЕ&БЕЛОЕ 24/7 НА ТРАССЕ»', place: 'Трасса М-8, 214 км',
+    id: 'route', title: '«ВИНОГРАД 24/7 НА ТРАССЕ»', place: 'Трасса М-8, 214 км',
     flow: 0.84, targetRefusals: 7,
     brief: 'Круглосуточный магазин у трассы: ночная смена, дальнобойщики, плотные очереди.',
-    palette: { floor: '#d6d2c9', wall: '#e4e8ec', accent: '#2c5f8a' },
+    palette: { floor: '#d6d2c9', wall: '#e4e8ec', accent: '#6a4a91' },
   },
 ];
 
@@ -351,7 +351,7 @@ export const SHIFT_PLAN = [
 ];
 /** Косметика: меняет цвет фартука, бейджа и ленты. Без влияния на баланс. */
 export const OUTFITS = [
-  { id: 'shift', name: '«Смена»', aprons: ['#b8352f'], badge: '#f4d35e', ribbon: '#f2f2f2', stars: 0 },
+  { id: 'shift', name: '«Смена»', aprons: ['#2f6b3f'], badge: '#f4d35e', ribbon: '#f2f2f2', stars: 0 },
   { id: 'prazdnik', name: '«Праздник»', aprons: ['#2f8f6f'], badge: '#f4d35e', ribbon: '#ffe9a8', stars: 3 },
   { id: 'kotik', name: '«Котик»', aprons: ['#4a6fae'], badge: '#ffd9e2', ribbon: '#ffffff', stars: 6 },
   { id: 'noch', name: '«Ночная смена»', aprons: ['#3b3f52'], badge: '#8fd3ff', ribbon: '#c9d6ff', stars: 10 },
@@ -388,6 +388,6 @@ export const KEYS_HELP = [
 
 export const TEXT = {
   title: 'Катьме: Смена',
-  subtitle: 'АЛОЕ&БЕЛОЕ — магазин у дома',
+  subtitle: 'ВИНОГРАД — магазин у дома',
   tagline: 'Расставь товар, отбей очередь и доживи до конца смены.',
 };

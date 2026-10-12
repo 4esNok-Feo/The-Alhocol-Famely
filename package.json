@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "«Катьме: Смена» — браузерная аркада о смене продавца в магазине «АЛОЕ&БЕЛОЕ» (HTML5, без сборщика)",
+  "description": "«Катьме: Смена» — браузерная аркада о смене продавщицы в магазине «ВИНОГРАД» (HTML5, без сборщика)",
   "scripts": {
     "test": "node --test tests/*.test.js",
     "serve": "python3 -m http.server 8000 --bind 0.0.0.0",

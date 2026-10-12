@@ -149,9 +149,9 @@ const SHIFT_PLAN := [
 ]
 
 const VENUES := {
-	"dom": {"title": "«АЛОЕ&БЕЛОЕ У ДОМА»", "place": "Кировск, Садовая 12", "accent": Color("#c0273a"), "floor": Color("#e7d9c4"), "flow_mul": 1.0, "patience_mul": 1.0},
-	"street": {"title": "«АЛОЕ&БЕЛОЕ НА МОСТОВОЙ»", "place": "Вологда, Мостовая 4", "accent": Color("#b3541e"), "floor": Color("#dfd7c8"), "flow_mul": 0.92, "patience_mul": 0.95},
-	"route": {"title": "«АЛОЕ&БЕЛОЕ 24/7 НА ТРАССЕ»", "place": "Трасса М-8, 214 км", "accent": Color("#2c5f8a"), "floor": Color("#d6d2c9"), "flow_mul": 0.84, "patience_mul": 0.9},
+	"dom": {"title": "«ВИНОГРАД У ДОМА»", "place": "Кировск, Садовая 12", "accent": Color("#3f7a45"), "floor": Color("#e7d9c4"), "flow_mul": 1.0, "patience_mul": 1.0},
+	"street": {"title": "«ВИНОГРАД НА МОСТОВОЙ»", "place": "Вологда, Мостовая 4", "accent": Color("#4b7a3d"), "floor": Color("#dfd7c8"), "flow_mul": 0.92, "patience_mul": 0.95},
+	"route": {"title": "«ВИНОГРАД 24/7 НА ТРАССЕ»", "place": "Трасса М-8, 214 км", "accent": Color("#6a4a91"), "floor": Color("#d6d2c9"), "flow_mul": 0.84, "patience_mul": 0.9},
 }
 
 const RANKS := ["Стажёр", "Продавец", "Старший продавец", "Завмаг", "Директор магазина", "Легенда сети"]

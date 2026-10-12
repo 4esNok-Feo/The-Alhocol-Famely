@@ -6,9 +6,19 @@
     </linearGradient>
   </defs>
   <rect width="512" height="512" rx="96" fill="url(#bg)"/>
-  <rect x="0" y="70" width="512" height="46" fill="#c0273a"/>
-  <text x="256" y="104" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif"
-        font-size="34" font-weight="bold" fill="#f6efe4">АЛОЕ&amp;БЕЛОЕ</text>
+  <rect x="0" y="70" width="512" height="46" fill="#3f7a45"/>
+  <g id="logo">
+    <g fill="#6a4a91">
+      <circle cx="228" cy="88" r="9"/><circle cx="252" cy="88" r="9"/>
+      <circle cx="216" cy="103" r="9"/><circle cx="240" cy="103" r="9"/><circle cx="264" cy="103" r="9"/>
+      <circle cx="228" cy="118" r="9"/><circle cx="252" cy="118" r="9"/>
+      <circle cx="240" cy="132" r="9"/>
+    </g>
+    <path d="M252 78 L256 62" stroke="#5f7a3a" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="268" cy="66" rx="12" ry="6" fill="#4f8a45" transform="rotate(-28 268 66)"/>
+  </g>
+  <text x="330" y="107" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif"
+        font-size="32" font-weight="bold" fill="#f6efe4">ВИНОГРАД</text>
   <!-- полка с товаром -->
   <g>
     <rect x="70" y="176" width="372" height="26" rx="8" fill="#8d6a4a"/>

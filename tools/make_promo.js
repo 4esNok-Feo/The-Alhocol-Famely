@@ -45,7 +45,11 @@ for (const font of ['DejaVuSans.ttf', 'DejaVuSans-Bold.ttf']) {
 }
 
 const FONT = '"DejaVu Sans", "Segoe UI", Roboto, Arial, sans-serif';
-const BRAND = 'АЛОЕ&БЕЛОЕ';
+const BRAND = 'ВИНОГРАД';
+// Цвет вымышленной сети — виноградная зелень (у реальных сетей красный,
+// поэтому бренд игры никого не повторяет).
+const BRAND_GREEN = '#3f7a45';
+const GRAPE = '#6a4a91';
 const TITLE = 'Катьме: Смена';
 const SUBTITLE = 'магазин у дома · смена за сменой';
 
@@ -64,6 +68,35 @@ function roundRect(ctx, x, y, w, h, r) {
 }
 
 /** Иконка по мотивам assets/icon.svg: полка, «18+» и Катьме за кассой. */
+/**
+ * Гроздь винограда — знак вымышленной сети «ВИНОГРАД». Та же форма, что и в
+ * игре (src/render/draw2d.js → grapes), но нарисованная для больших картинок.
+ */
+function grapesAt(ctx, x, y, r) {
+  const berries = [
+    [-1, 0], [1, 0],
+    [-1.6, 1.1], [0, 1.15], [1.6, 1.1],
+    [-0.8, 2.2], [0.8, 2.2],
+    [0, 3.1],
+  ];
+  for (const [bx, by] of berries) {
+    ctx.beginPath();
+    ctx.arc(x + bx * r, y + by * r, r * 0.72, 0, Math.PI * 2);
+    ctx.fillStyle = GRAPE;
+    ctx.fill();
+  }
+  ctx.strokeStyle = '#5f7a3a';
+  ctx.lineWidth = Math.max(1, r * 0.3);
+  ctx.beginPath();
+  ctx.moveTo(x, y - r * 0.5);
+  ctx.lineTo(x + r * 0.1, y - r * 1.6);
+  ctx.stroke();
+  ctx.fillStyle = '#4f8a45';
+  ctx.beginPath();
+  ctx.ellipse(x + r * 0.9, y - r * 1.2, r * 0.85, r * 0.45, -0.5, 0, Math.PI * 2);
+  ctx.fill();
+}
+
 function drawIcon(ctx, size) {
   const k = size / 512;
   const g = ctx.createLinearGradient(0, 0, 0, size);
@@ -73,7 +106,7 @@ function drawIcon(ctx, size) {
   roundRect(ctx, 0, 0, size, size, 96 * k);
   ctx.fill();
 
-  ctx.fillStyle = '#c0273a';
+  ctx.fillStyle = BRAND_GREEN;
   ctx.fillRect(0, 70 * k, size, 46 * k);
   ctx.fillStyle = '#f6efe4';
   ctx.font = `bold ${34 * k}px ${FONT}`;
@@ -99,12 +132,15 @@ function drawIcon(ctx, size) {
   }
 
   // Плашка «18+» — главная фишка механики.
-  ctx.fillStyle = '#c0273a';
+  ctx.fillStyle = BRAND_GREEN;
   roundRect(ctx, 300 * k, 226 * k, 132 * k, 52 * k, 10 * k);
   ctx.fill();
   ctx.fillStyle = '#ffffff';
   ctx.font = `bold ${36 * k}px ${FONT}`;
   ctx.fillText('18+', 366 * k, 254 * k);
+
+  // Знак сети — гроздь винограда над прилавком.
+  grapesAt(ctx, 300 * k, 168 * k, 13 * k);
 
   // Катьме за кассой.
   ctx.fillStyle = '#d8b189';
@@ -114,9 +150,23 @@ function drawIcon(ctx, size) {
   roundRect(ctx, 150 * k, 392 * k, 212 * k, 26 * k, 10 * k);
   ctx.fill();
 
-  ctx.fillStyle = '#b8352f';
+  // Хвост волос — крепится к голове и уходит вниз-влево.
+  ctx.save();
+  ctx.translate(228 * k, 274 * k);
+  ctx.rotate(0.22);
+  ctx.fillStyle = '#a84a25';
+  roundRect(ctx, -8 * k, 0, 16 * k, 58 * k, 8 * k);
+  ctx.fill();
+  ctx.fillStyle = '#f4d35e';
+  roundRect(ctx, -5 * k, -2 * k, 10 * k, 8 * k, 4 * k);
+  ctx.fill();
+  ctx.restore();
+  // Фартук сети.
+  ctx.fillStyle = BRAND_GREEN;
   roundRect(ctx, 226 * k, 300 * k, 60 * k, 76 * k, 20 * k);
   ctx.fill();
+  // Знак сети на фартуке — небольшой, у уголка кармана.
+  grapesAt(ctx, 240 * k, 330 * k, 5 * k);
   ctx.fillStyle = '#f5f1ea';
   roundRect(ctx, 238 * k, 330 * k, 36 * k, 34 * k, 10 * k);
   ctx.fill();
@@ -132,6 +182,25 @@ function drawIcon(ctx, size) {
   ctx.beginPath();
   ctx.arc(246 * k, 290 * k, 4 * k, 0, Math.PI * 2);
   ctx.arc(266 * k, 290 * k, 4 * k, 0, Math.PI * 2);
+  ctx.fill();
+  // Ресницы — короткие штрихи у внешних уголков глаз.
+  ctx.strokeStyle = '#3a2a22';
+  ctx.lineWidth = 1.4 * k;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(241 * k, 287 * k); ctx.lineTo(238.5 * k, 283.5 * k);
+  ctx.moveTo(271 * k, 287 * k); ctx.lineTo(273.5 * k, 283.5 * k);
+  ctx.stroke();
+  // Улыбка.
+  ctx.strokeStyle = '#a8554a';
+  ctx.lineWidth = 1.4 * k;
+  ctx.beginPath();
+  ctx.arc(256 * k, 297 * k, 5 * k, 0.15 * Math.PI, 0.85 * Math.PI);
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(232,138,134,0.55)';
+  ctx.beginPath();
+  ctx.arc(238 * k, 298 * k, 6 * k, 0, Math.PI * 2);
+  ctx.arc(274 * k, 298 * k, 6 * k, 0, Math.PI * 2);
   ctx.fill();
 
   // Звезда — прогрессия карьеры.
@@ -183,14 +252,17 @@ async function makeCover() {
   ctx.fillStyle = shade;
   ctx.fillRect(0, 0, W, H);
 
-  // Красная шапка с названием сети.
-  ctx.fillStyle = '#c0273a';
+  // Шапка в фирменном цвете: знак сети и название.
+  ctx.fillStyle = BRAND_GREEN;
   ctx.fillRect(0, 0, W, 92);
   ctx.fillStyle = '#f6efe4';
   ctx.font = `bold 44px ${FONT}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(BRAND, W / 2, 48);
+  ctx.fillText(BRAND, W / 2 + 26, 48);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  grapesAt(ctx, W / 2 - 138, 22, 9);
 
   ctx.textAlign = 'left';
   const shout = (str, x, y, font, fill, outline = 5) => {
@@ -256,7 +328,7 @@ ${TITLE}
 
 ## Полное описание
 
-Вы — Катьме, продавец магазина «АЛОЕ&БЕЛОЕ» у дома. Смена длится две-три минуты,
+Вы — Катьме, продавец магазина «ВИНОГРАД» у дома. Смена длится две-три минуты,
 и за это время нужно успеть всё сразу: выложить товар из ящиков на полки, разобрать
 очередь на кассе и не продать крепкое младше 18 лет.
 

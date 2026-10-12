@@ -59,6 +59,7 @@ export class Game {
     this.dpr = 1;
     this.adPending = false;
     this.blurFlag = false;
+    this.clickPending = null;
     this.log = [];
   }
 
@@ -272,6 +273,11 @@ export class Game {
     }
     this.handleHotkeys();
     this.input.clearFrame();
+    // Клик прилетает между кадрами (mouseup/touchstart), а кнопки живут в
+    // render(): поэтому клик перекладываем в clickPending, а «почтовый ящик»
+    // чистим. Раньше здесь стоял pointerClick = null — из-за этого ни одна
+    // кнопка на канвасе не срабатывала, хотя подсвечивалась при наведении.
+    this.clickPending = this.pointerClick;
     this.pointerClick = null;
   }
 
@@ -578,10 +584,18 @@ export class Game {
     }
   }
 
-  /** Обработка кликов по кнопкам интерфейса. */
+  /**
+   * Обработка кликов по кнопкам интерфейса. Клик одноразовый: он приходит из
+   * update() (clickPending) и тратится здесь, чтобы одно нажатие не сработало
+   * дважды, если render() вызовут несколько раз за кадр.
+   */
   handleButtons(buttons) {
-    if (!this.pointerClick) return;
-    const { x, y } = this.pointerClick;
+    const click = this.clickPending;
+    if (!click) return;
+    this.clickPending = null;
+    const { x, y } = click;
+    // Кнопки рисуются «сверху вниз», поэтому проверяем в обратном порядке:
+    // верхняя и самая свежая получает клик первой.
     for (const b of buttons.slice().reverse()) {
       if (!b.enabled) continue;
       if (x < b.x || x > b.x + b.w || y < b.y || y > b.y + b.h) continue;
@@ -610,7 +624,10 @@ export class Game {
       case 'resume': this.setState('shift', { snapshot: null }); break;
       case 'restart': this.startShift(this.shift); break;
       case 'reload': window.location.reload(); break;
-      case 'scan': if (!this.run?.pressScan()) this.audio.play('error'); break;
+      case 'scan':
+        // Пока идёт «пик» сканера, повторное нажатие — не ошибка, а нетерпение.
+        if (!this.run?.pressScan() && !this.run?.busy) this.audio.play('error');
+        break;
       case 'checkId': this.run?.pressCheckId(); break;
       case 'refuse': this.run?.pressRefuse(); break;
       case 'finish': this.run?.pressEnter(); break;

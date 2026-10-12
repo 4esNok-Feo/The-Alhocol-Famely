@@ -14,7 +14,7 @@ import {
 } from '../core/career.js';
 import { clamp, formatMoney, formatTime, starsWord } from '../core/util.js';
 import {
-  fillRound, fitText, progressBar, star, strokeRound, text,
+  fillRound, fitText, grapes, progressBar, star, strokeRound, text,
 } from '../render/draw2d.js';
 
 const C = {
@@ -24,6 +24,8 @@ const C = {
   cardLight: 'rgba(255,255,255,0.94)',
   stroke: 'rgba(255,255,255,0.14)',
   red: '#c0273a',
+  /** Цвет вымышленной сети «ВИНОГРАД»: виноградная зелень вместо красного. */
+  brand: '#3f7a45',
   text: '#f6f1e9',
   dim: '#bfb6ae',
   gold: '#f7c948',
@@ -166,9 +168,11 @@ export class Screens {
     const signW = Math.min(620 * s, w - 60 * s);
     const sx = cx - signW / 2;
     fillRound(ctx, sx, y - 74 * s, signW, 84 * s, 12 * s, '#f6efe4');
-    strokeRound(ctx, sx, y - 74 * s, signW, 84 * s, 12 * s, C.red, 4);
-    text(ctx, 'АЛОЕ&БЕЛОЕ', cx, y - 30 * s, {
-      size: 40 * s, align: 'center', color: C.red, weight: '800',
+    strokeRound(ctx, sx, y - 74 * s, signW, 84 * s, 12 * s, C.brand, 4);
+    // Гроздь винограда слева от названия — знак сети.
+    grapes(ctx, sx + 34 * s, y - 32 * s, 11 * s);
+    text(ctx, 'ВИНОГРАД', cx + 12 * s, y - 30 * s, {
+      size: 40 * s, align: 'center', color: C.brand, weight: '800',
     });
     text(ctx, 'магазин у дома · круглосуточно', cx, y - 8 * s, {
       size: 13 * s, align: 'center', color: '#6d5f58', weight: '700',

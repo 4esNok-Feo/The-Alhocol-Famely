@@ -158,6 +158,7 @@ shot('brief', 'брифинг перед сменой');
 game.startShift(shifts[2]);       // вечерняя смена: плотный поток
 game.autoBot = new Bot('strong', 2024);
 let captured = { queue: false, carrying: false, dialog: false, register: false };
+  // (dialogDone — служебный флаг: после диалога кадр кассы снимается спокойно)
 for (let i = 0; i < 60 * 180 * 1.1; i++) {
   simulate(1 / 60);
   const snap = game.run?.snapshot();
@@ -178,7 +179,11 @@ for (let i = 0; i < 60 * 180 * 1.1; i++) {
     shot('shift-dialog', 'диалог со скандалистом');
     captured.dialog = true;
   }
-  if (!captured.register && snap.current && snap.current.basket.length >= 2 && !snap.current.idChecked) {
+  // Кадр кассы снимаем без открытого диалога: иначе две подсказки спорят
+  // друг с другом и на снимке не видно ни чека, ни реплик.
+  if (!captured.dialogConfirmed && snap.dialogCustomer) { captured.dialogDone = true; }
+  if (!captured.register && !snap.dialogCustomer && snap.current
+      && snap.current.basket.length >= 2 && !snap.current.idChecked) {
     game.render();
     shot('shift-register', 'касса: чек покупателя и проверка паспорта');
     captured.register = true;

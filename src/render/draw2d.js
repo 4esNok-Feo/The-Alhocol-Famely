@@ -131,6 +131,47 @@ export function star(ctx, cx, cy, r, color = '#f7c948', strokeColor = '#8a6a12')
   ctx.restore();
 }
 
+/**
+ * Знак вымышленной сети «ВИНОГРАД» — гроздь винограда, нарисованная кодом.
+ * Используется на вывеске в меню, на фартуке Катьме и в промо-материалах.
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} x  центр ягод (не включая листок)
+ * @param {number} y  верх грозди
+ * @param {number} r  радиус одной ягоды
+ */
+export function grapes(ctx, x, y, r) {
+  ctx.save();
+  const berries = [
+    [-1, 0], [1, 0],
+    [-1.6, 1.1], [0, 1.15], [1.6, 1.1],
+    [-0.8, 2.2], [0.8, 2.2],
+    [0, 3.1],
+  ];
+  for (const [bx, by] of berries) {
+    ctx.beginPath();
+    ctx.arc(x + bx * r, y + by * r, r * 0.72, 0, Math.PI * 2);
+    ctx.fillStyle = '#6a4a91';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x + bx * r - r * 0.2, y + by * r - r * 0.25, r * 0.22, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.fill();
+  }
+  // Хвостик и листок.
+  ctx.strokeStyle = '#5f7a3a';
+  ctx.lineWidth = Math.max(1, r * 0.28);
+  ctx.beginPath();
+  ctx.moveTo(x, y - r * 0.5);
+  ctx.lineTo(x + r * 0.1, y - r * 1.5);
+  ctx.stroke();
+  ctx.fillStyle = '#4f8a45';
+  ctx.beginPath();
+  ctx.ellipse(x + r * 0.85, y - r * 1.15, r * 0.8, r * 0.42, -0.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
 export function progressBar(ctx, x, y, w, h, ratio, colors) {
   const r = Math.min(h / 2, 8);
   fillRound(ctx, x, y, w, h, r, colors.track ?? 'rgba(0,0,0,0.18)');

@@ -48,7 +48,7 @@ func _draw() -> void:
 		Vector2(Cfg.BACK_ROOM_RECT.size.x + wt * 2, wt)), wall_color)
 	# Красная полоса сети над северной стеной.
 	draw_rect(Rect2(Cfg.SHOP_RECT.position + Vector2(-wt, -6) + offset,
-		Vector2(Cfg.SHOP_RECT.size.x + wt * 2, 8)), Color("#c0273a"))
+		Vector2(Cfg.SHOP_RECT.size.x + wt * 2, 8)), Color("#3f7a45"))
 
 	# ── Полки и товар
 	for id in run.shelves:
@@ -100,7 +100,7 @@ func _draw() -> void:
 	draw_rect(Rect2(Cfg.CASHIER_COUNTER.position + offset + Vector2(32, 20), Vector2(78, 22)), Color("#7fd6a2"))
 	var reg_plate := Rect2(Cfg.CASHIER_COUNTER.position + Vector2(Cfg.CASHIER_COUNTER.size.x - 120, -26) + offset,
 		Vector2(110, 28))
-	draw_rect(reg_plate, Color("#c0273a"))
+	draw_rect(reg_plate, Color("#3f7a45"))
 	draw_string(ThemeDB.fallback_font, reg_plate.position + Vector2(55, 19), "КАССА",
 		HORIZONTAL_ALIGNMENT_CENTER, 110, 16, Color("#fff5f2"))
 
